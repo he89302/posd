@@ -1,14 +1,16 @@
-#ifndef INFO_CONTENT_VISITOR
-#define INFO_CONTENT_VISITOR
+#ifndef INFO_CONTENT_VISITOR_H
+#define INFO_CONTENT_VISITOR_H
+#include "node_visitor.h"
 class File;
 class Folder;
 
-class InfoContentVisitor{
+class InfoContentVisitor:public NodeVisitor {
 public:
   InfoContentVisitor();
 
-  void visitFile(File * file);
-  void visitFolder(Folder * folder);
+  void visitFile(File *);
+  void visitFolder(Folder *);
+  void visitLink(Link *);
 
   int getContentSize() {
     return _size;
@@ -17,5 +19,4 @@ public:
 private:
   int _size;
 };
-
 #endif

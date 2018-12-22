@@ -1,5 +1,5 @@
 #include <gtest/gtest.h>
-#include "./ut_fs.h"
+#include "ut_fs.h"
 
 int main(int argc, char ** argv)
 {

@@ -1,26 +1,24 @@
-#ifndef FILE_H
-#define FILE_H
-
+#ifndef LINK_H
+#define LINK_H
 #include "node.h"
 #include "node_visitor.h"
-#include "find_visitor.h"
 #include "node_iterator.h"
-#include "null_iterator.h"
-#include <map>
-#include <sys/stat.h>
-#include <string>
 
-class File : public Node{
+class Link:public Node {
 public:
-  File(const char * path) : Node(path){
+  Link(const char * path, Node * node = nullptr) : Node(path), _source(node){
     if(lstat(path, &_st) == 0)
-      if (!S_ISREG(_st.st_mode)) {
+      if (!S_ISLNK(_st.st_mode)) {
                 throw std::string("path of constructor does not correspond.");
             }
   }
 
-  void accept(NodeVisitor * nv) {
-    nv->visitFile(this);
+  void  accept(NodeVisitor * nv) {
+    nv->visitLink(this);
+  }
+
+  Node * getSource() {
+    return _source;
   }
 
   NodeIterator * createIterator() {
@@ -28,7 +26,7 @@ public:
   }
 
 private:
+  Node * _source;
   struct stat _st;
 };
-
 #endif

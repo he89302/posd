@@ -2,85 +2,81 @@
 #define FOLDER_H
 
 #include "node.h"
-#include "info_content_visitor.h"
+#include "node_visitor.h"
+#include "find_visitor.h"
+#include "node_iterator.h"
 #include <sys/stat.h>
 #include <cstddef>
-#include <vector>
+#include <iostream>
+#include <map>
+#include <sys/stat.h>
+#include <utility>
 #include <string>
-static int layer = 0;
-static std::string foundPath = "";
 
- class Folder:public Node{
+
+class Folder:public Node{
 public:
-  friend class InfoContentVisitor;
+  class FolderIterator:public NodeIterator {
+  public:
+    FolderIterator(Folder * folder) : _folder(folder) {
 
-  Folder(const char* path):Node(path){}
+    }
+
+    void first() {
+      _it = _folder->_children.begin();
+    }
+
+    void next() {
+      if(isDone()) {
+        throw std::string("moving past the end");
+      }
+      _it++;
+    }
+
+    bool isDone() {
+      return _it == _folder->_children.end();
+    }
+
+    Node * currentItem() {
+      if(isDone()) {
+        throw std::string("no current item");
+      }
+      return _it->second;
+    }
+
+  private:
+    Folder * _folder;
+    std::map<std::string, Node*>::iterator _it;
+  };
+
+  Folder(const char* path) : Node(path){
+    if(lstat(path, &_st) == 0)
+      if (!S_ISDIR(_st.st_mode)) {
+                throw std::string("path of constructor does not correspond.");
+            }
+  }
 
   void add(Node *node) {
-    _children.push_back(node);
+    std::string fileName = node->name();
+    _children.insert(std::make_pair(fileName, node));
+    node->setParent(this);
   }
 
   int numberOfChildren() const {
     return _children.size();
   }
 
-  // int infoContent() const {
-  //   int sum = 0;
-  //   for (int i = 0; i < _children.size(); i++)
-  //   {
-  //     sum += _children[i]->infoContent();
-  //   }
-  //   return sum;
-  // }
-
-  void collectFindPath(std::string nodeName) {
-    for (int i = 0; i < _children.size(); i++) {
-      layer++;
-      if(_children[i]->name() == nodeName){
-        foundPath.append(_children[i]->path());
-        foundPath.append("\n");
-      }
-      _children[i]->find(nodeName);
-      layer--;
-    }
+  void accept(NodeVisitor * nv) {
+    nv->visitFolder(this);
   }
 
-  void eraseParentsPath(std::string parentsPath, std::size_t position) {
-    while(foundPath.find(parentsPath) != std::string::npos) {
-      foundPath.erase(foundPath.begin()+position, foundPath.begin()+position+parentsPath.length());
-      position = foundPath.find(parentsPath);
-    }
-  }
-
-  std::string find(std::string _nodeName) {
-    std::string nodeName = _nodeName;
-    bool isFound = false;
-
-    if(layer == 0) {
-      foundPath = "";
-    }
-    collectFindPath(nodeName);
-    if(layer == 0) {
-      std::string parentsPath = path();
-      std::size_t found = parentsPath.find(".");
-      parentsPath.assign(parentsPath.begin()+1, parentsPath.end());
-      std::size_t position = foundPath.find(parentsPath);//紀錄"."之後目前父資料夾的路徑
-
-      if(position == std::string::npos) {
-        return "";
-      }
-      eraseParentsPath(parentsPath, position);
-      foundPath.assign(foundPath.begin(), foundPath.end()-1);
-     }
-       return foundPath;
-  }
-
-  void accept(InfoContentVisitor * icv) {
-    icv->visitFolder(this);
+  NodeIterator * createIterator() {
+    return new FolderIterator(this);
   }
 
 private:
-  std::vector<Node *> _children;
+  std::map<std::string, Node *> _children;
+  struct stat _st;
 };
 
 #endif
