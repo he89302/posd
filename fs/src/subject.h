@@ -33,6 +33,8 @@ public:
     }
   }
 
+  virtual void changeFileName(Node * node, std::string newLabel) = 0;
+
 private:
   std::vector<Observer *> _observer;
 };

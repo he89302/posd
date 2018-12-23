@@ -4,6 +4,7 @@
 #include "subject.h"
 #include "node_iterator.h"
 #include "node_builder.h"
+#include <cstdio>
 
 class FileSystem : public Subject {
 public:
@@ -14,13 +15,24 @@ public:
     deepVisit(nb.getRoot());
   }
 
-  void deepVisit(Node * node) {
-    NodeIterator * it = node->createIterator();
 
-    for(it->first(); !it->isDone(); it->next()) {
-      std::cout << it->currentItem()->name() << '\n';
-      deepVisit(it->currentItem());
-    }
+
+ void changeFileName(Node * node, std::string newNodeName) {
+   char oldPath[1000];
+   char newPath[1000];
+   strcpy(oldPath, node->path().c_str());
+   if(node->getParent() != nullptr) {
+     strcpy(newPath, node->getParent()->path().c_str());
+     strcat(newPath, "/");
+     strcat(newPath, newNodeName.c_str());
+   }else {
+     strcpy(newPath, node->path().c_str());
+   }
+
+   if(std::rename(oldPath, newPath) < 0) {
+     std::perror("Error renaming");
+   }else
+    std::cout << "OK" << '\n';
  }
 
 
@@ -30,5 +42,14 @@ public:
 
 private:
   Node * _root;
+
+  void deepVisit(Node * node) {
+    NodeIterator * it = node->createIterator();
+
+    for(it->first(); !it->isDone(); it->next()) {
+      //std::cout << it->currentItem()->path() << '\n';
+      deepVisit(it->currentItem());
+    }
+ }
 };
 #endif
