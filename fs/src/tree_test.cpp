@@ -10,13 +10,15 @@ IMPLEMENT_APP(TreeTestApp)
 
 bool TreeTestApp::OnInit()
 {
+  std::string tempArgv = std::string(wxTheApp->argv[1]);
+  char * argv = new char[tempArgv.length() + 1];
+  strcpy(argv, tempArgv.c_str());
   NodeBuilder nb;
-  nb.build("test_data");
+  nb.build(argv);
   Node * root = nb.getRoot();
   Subject * fileSystem = new FileSystem(root);
 
-  wxFrame *frame = new TreeFrame(wxT("***Tree Test***"), 100, 100, 300, 200,fileSystem, root);
-
+  wxFrame *frame = new TreeFrame(wxT("***Tree Test***"), 100, 100, 600, 400,fileSystem, root);
   frame->Show(true);
   this->SetTopWindow(frame);
   return true;

@@ -3,6 +3,7 @@
 #include "node.h"
 #include "node_visitor.h"
 #include "node_iterator.h"
+#include "null_iterator.h"
 
 class Link:public Node {
 public:

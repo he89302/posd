@@ -67,6 +67,22 @@ public:
     parentNode = p;
  }
 
+ void deepUpdate(Node * node) {
+   std::string nodeParentPath = node->getParent()->path();
+   nodeParentPath = nodeParentPath + "/" + node->name();
+   char * refreshchildPath = new char[nodeParentPath.length() + 1];
+   strcpy(refreshchildPath, nodeParentPath.c_str());
+   node->updateNodePath(refreshchildPath);
+   NodeIterator * it = node->createIterator();
+   for(it->first(); !it->isDone(); it->next()) {
+     it->currentItem()->deepUpdate(it->currentItem());
+   }
+ }
+
+ virtual void updateNodePath (const char * path) {
+    _path = path;
+ }
+
 
   virtual ~Node() {
 

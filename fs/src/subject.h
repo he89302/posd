@@ -34,6 +34,9 @@ public:
   }
 
   virtual void changeFileName(Node * node, std::string newLabel) = 0;
+  virtual bool isContentBinary(std::string path) = 0;
+  virtual int isType(std::string path) = 0;
+  virtual int fileSize(const char * path) = 0;
 
 private:
   std::vector<Observer *> _observer;

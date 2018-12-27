@@ -7,6 +7,7 @@
 #include "find_link_visitor.h"
 #include <dirent.h>
 #include <unistd.h>
+#include <sys/stat.h>
 #include <iostream>
 
 
