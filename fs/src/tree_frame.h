@@ -16,9 +16,6 @@
 #include "subject.h"
 #include "observer.h"
 
-
-void deepVisit(Node * node, wxTreeItemId treeId);
-Node * findRootNode(Node * node);
 class TreeFrame : public wxFrame, public Observer {
 public:
 
@@ -29,7 +26,7 @@ public:
     wxTreeItemId rootId = _tree->AddRoot(wxT("" + root->name() + "," + std::to_string(root->size())));
     deepVisit(root, rootId);
     _tree->ExpandAllChildren(rootId);
-    _textCtrl = new wxTextCtrl(this, -1, _T("Welcom to POSD Editor"),
+    _text = new wxTextCtrl(this, -1, _T("Welcom to POSD Editor"),
   		wxPoint(200, 0), wxSize(400, 300), wxTE_MULTILINE);
     _saveButton = new wxButton(this, -1, _T("Save"), wxPoint(200, 300), wxSize(400, 100), 0);
   }
@@ -53,27 +50,7 @@ public:
   void OnTreeSelectionChanged(wxTreeEvent& event) {
     selectedNode = event.GetItem();
     int chooseValue = _fileSystem->isType((treeTable[selectedNode])->path());
-    saveFileName = treeTable[selectedNode]->name();
-    char line[1000000];
-    std::fstream fin;
-    if(chooseValue == 1 || chooseValue == 3) {
-      _textCtrl->SetValue("The file is not displayed in the editor becase it uses an unsupported text encoding");
-      _saveButton->Enable(false);
-    }else if(chooseValue == 2) {
-      context = "";
-      _textCtrl->SetValue(context);
-      if(_fileSystem->isContentBinary((treeTable[selectedNode])->path())) {
-        _textCtrl->SetValue("The file is not displayed in the editor becase it uses an unsupported text encoding");
-        _saveButton->Enable(false);
-      }else {
-        _saveButton->Enable(true);
-        fin.open(treeTable[selectedNode]->path(), std::ios::in);
-        while (fin.getline(line, sizeof(line), '\n')) {
-          context = context + line + '\n';
-        }
-        _textCtrl->SetValue(context);
-      }
-    }
+    readSelectionFile(chooseValue);
     event.Skip();
   }
 
@@ -88,9 +65,9 @@ public:
 private:
   DECLARE_EVENT_TABLE()
   std::map<wxTreeItemId,Node *> treeTable;
-  wxTreeCtrl *_tree;
-  wxTextCtrl * _textCtrl;
-  wxButton *_saveButton;
+  wxTreeCtrl * _tree;
+  wxTextCtrl * _text;
+  wxButton * _saveButton;
   wxTreeItemId chooseEditId;
   wxTreeItemId selectedNode;
   Node * _root;
@@ -126,9 +103,10 @@ private:
   void saveFile() {
     std::fstream file;
     file.open(savePath, std::ios::out);
-    file << _textCtrl->GetValue();
+    file << _text->GetValue();
     file.close();
   }
+
   void setTableOfContentName() {
     std::string tempPressNodePath = treeTable[selectedNode]->path();
     char * pressNodePath = new char[tempPressNodePath.length() + 1];
@@ -136,6 +114,30 @@ private:
     int fileValue = _fileSystem->fileSize(pressNodePath);
     _tree->SetItemText(selectedNode, treeTable[selectedNode]->name() + ", " + to_string(fileValue));
   }
+
+  void readSelectionFile(int chooseFileType) {
+    saveFileName = treeTable[selectedNode]->name();
+    char line[1000000];
+    std::fstream fin;
+    if(chooseFileType == 1 || chooseFileType == 3) {//Can't be edited file
+      _text->SetValue("The file is not displayed in the editor becase it uses an unsupported text encoding");
+      _saveButton->Enable(false);
+    }else if(chooseFileType == 2) {//Can be edited file
+      context = "";
+      _text->SetValue(context);
+      if(_fileSystem->isContentBinary((treeTable[selectedNode])->path())) {//bianry file
+        _text->SetValue("The file is not displayed in the editor becase it uses an unsupported text encoding");
+        _saveButton->Enable(false);
+      }else {
+        _saveButton->Enable(true);
+        fin.open(treeTable[selectedNode]->path(), std::ios::in);
+        while (fin.getline(line, sizeof(line), '\n'))
+          context = context + line + '\n';
+        _text->SetValue(context);
+      }
+    }
+  }
+
 };
 
 BEGIN_EVENT_TABLE(TreeFrame, wxFrame)

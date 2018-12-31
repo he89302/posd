@@ -1,8 +1,1 @@
-#include<stdio.h>
-
-int main(int argc, char** argv){
-  printf("Hello World!\n");
-
-}
-
-
+The file is not displayed in the editor becase it uses an unsupported text encoding
